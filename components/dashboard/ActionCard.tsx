@@ -26,7 +26,7 @@ export function ActionCard({
   title,
 }: ActionCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader>
         <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0284c7] text-white">
           <Icon className="h-5 w-5" />

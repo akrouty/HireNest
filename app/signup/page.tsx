@@ -1,4 +1,4 @@
-import SignUpPage from "@/pages/auth/SignUpPage";
+import SignUpPage from "@/screens/auth/SignUpPage";
 
 export default function SignUpRoute() {
   return <SignUpPage />;

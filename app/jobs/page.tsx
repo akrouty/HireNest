@@ -1,4 +1,4 @@
-import JobsPage from "@/pages/jobs/JobsPage";
+import JobsPage from "@/screens/jobs/JobsPage";
 
 export default function JobsRoute() {
   return <JobsPage />;

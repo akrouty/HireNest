@@ -1,83 +1,105 @@
-import { apiPost } from "@/services/api";
-import { setAccessToken } from "@/lib/auth-store";
+import {
+  clearAccessToken,
+  setAccessToken,
+  toAuthUser,
+  type AuthUser,
+} from "@/lib/auth-store";
+import { apiGet, apiPost } from "@/services/api";
 
-export type LoginResponse = { access_token: string; token_type: "bearer" };
-export type AuthRole = "candidate" | "recruiter" | "admin" | string;
+export type AuthRole = "candidate" | "admin";
 
-type AuthPayload = {
-  username: string;
+export type LoginPayload = {
+  email: string;
   password: string;
-  fullName?: string;
   rememberMe?: boolean;
+};
+
+export type GoogleLoginPayload = {
+  credential: string;
+  rememberMe?: boolean;
+};
+
+export type SignupPayload = {
+  email: string;
+  password: string;
+  fullName: string;
   role?: AuthRole;
 };
 
-function generateMockToken(
-  username: string,
-  role: AuthRole = "candidate",
-  fullName?: string,
-) {
-  const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload = btoa(
-    JSON.stringify({
-      sub: username,
-      role,
-      fullName,
-      email: `${username}@example.com`,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 86400,
-    }),
+type LoginResponse = {
+  access_token: string;
+  token_type: "bearer";
+};
+
+type MeResponse = {
+  id?: number;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
+  username?: string | null;
+  role: AuthRole;
+};
+
+function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    first_name: parts[0] ?? "Candidate",
+    last_name: parts.slice(1).join(" ") || "User",
+  };
+}
+
+export async function getCurrentUser(): Promise<AuthUser> {
+  const me = await apiGet<MeResponse>("/me");
+  return toAuthUser(me);
+}
+
+export async function signIn({ email, password, rememberMe }: LoginPayload) {
+  const response = await apiPost<LoginResponse>(
+    "/login",
+    { email, password },
+    { auth: false },
   );
-  const signature = btoa("mock-signature");
-
-  return `${header}.${payload}.${signature}`;
+  setAccessToken(response.access_token, Boolean(rememberMe));
+  return getCurrentUser();
 }
 
-async function mockDelay() {
-  await new Promise((resolve) => setTimeout(resolve, 500));
-}
-
-export async function signIn({ username, password }: AuthPayload) {
-  await mockDelay();
-
-  if (!username || !password) {
-    throw new Error("Please enter email and password");
-  }
-
-  const token = generateMockToken(username);
-  setAccessToken(token);
-  return { accessToken: token };
+export async function signInWithGoogle({
+  credential,
+  rememberMe,
+}: GoogleLoginPayload) {
+  const response = await apiPost<LoginResponse>(
+    "/auth/google",
+    { credential },
+    { auth: false },
+  );
+  setAccessToken(response.access_token, Boolean(rememberMe));
+  return getCurrentUser();
 }
 
 export async function signUp({
-  username,
+  email,
   password,
   fullName,
   role = "candidate",
-}: AuthPayload) {
-  await mockDelay();
-
-  if (!username || !password) {
-    throw new Error("Please enter username and password");
-  }
-
-  const token = generateMockToken(username, role, fullName);
-  setAccessToken(token);
-  return { accessToken: token };
-}
-
-export function signInWithBackend(username: string, password: string) {
-  return apiPost<LoginResponse>(
-    "/login",
-    { username, password },
-    { includeCredentials: true },
+}: SignupPayload) {
+  await apiPost(
+    "/signup",
+    {
+      ...splitFullName(fullName),
+      email,
+      password,
+      role,
+    },
+    { auth: false },
   );
+  return signIn({ email, password, rememberMe: true });
 }
 
-export function signUpWithBackend(
-  username: string,
-  password: string,
-  role: AuthRole,
-) {
-  return apiPost<{ ok: boolean }>("/signup", { username, password, role });
+export async function logout() {
+  try {
+    await apiPost("/logout");
+  } finally {
+    clearAccessToken();
+  }
 }

@@ -1,4 +1,4 @@
-import QcmPage from "@/pages/qcm/QcmPage";
+import QcmPage from "@/screens/qcm/QcmPage";
 
 export default function QcmRoute() {
   return <QcmPage />;

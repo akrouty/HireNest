@@ -1,5 +1,5 @@
-import RecommendationsRoute from "@/app/recommendations/page";
+import RecommendationsPage from "@/screens/recommendations/RecommendationsPage";
 
-export default function InsightsAliasRoute() {
-  return <RecommendationsRoute />;
+export default function InsightsPage() {
+  return <RecommendationsPage />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import {
   Briefcase,
   ClipboardCheck,
@@ -14,8 +14,8 @@ import {
   Video,
 } from "lucide-react";
 
-import { clearAccessToken } from "@/lib/auth-store";
 import { Logo } from "@/components/layout/Logo";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -34,13 +34,16 @@ type SidebarProps = {
 };
 
 export function Sidebar({ onNavigate, variant = "desktop" }: SidebarProps) {
-  const pathname = usePathname();
-  const router = useRouter();
+  const [pathname, setPathname] = useState("");
+  const { logout } = useAuth();
 
-  function onLogout() {
-    clearAccessToken();
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
+
+  async function onLogout() {
     onNavigate?.();
-    router.push("/signin");
+    await logout();
   }
 
   return (

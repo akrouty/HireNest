@@ -38,7 +38,7 @@ export function RecentActivity({ items }: RecentActivityProps) {
             return (
               <article
                 key={item.title}
-                className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between"
+                className="flex flex-col gap-3 py-4 transition-colors duration-200 first:pt-0 last:pb-0 hover:bg-slate-50/60 sm:flex-row sm:items-start sm:justify-between"
               >
                 <div className="flex gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-50 text-[#0284c7]">
